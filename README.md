@@ -80,30 +80,33 @@ spinotek-future-lab/
 
 Platform dilengkapi dengan sistem autentikasi lengkap:
 
+- **Optional Login**: User bisa akses web tanpa login
 - **Login/Register Modal**: Integrated dalam index.html
-- **Demo Account**: Pre-configured untuk testing
+- **Tombol "Masuk"**: Di navbar untuk akses login
 - **User Management**: LocalStorage-based user database
 - **Session Persistence**: Auto-login untuk returning users
 - **Password Toggle**: Show/hide password functionality
 - **Form Validation**: Client-side validation
 - **User Profile**: Display name, level, dan XP di navbar
-
-### Demo Account:
-- Email: `demo@spinotek.com`
-- Password: `demo123`
+- **Protected Features**: Challenges require login to participate
 
 ## 🎮 Gamification System
 
 Platform ini dilengkapi dengan XP system yang interaktif:
 
-- **XP Counter**: Real-time display di navbar
+- **Progress Overview**: Visual progress bar untuk track completion
+- **XP Counter**: Real-time display di navbar (only when logged in)
 - **Level System**: Level up setiap 500 XP
+- **Rank System**: Beginner → Intermediate → Expert → Master
 - **Coding Challenges**: 4 challenges dengan difficulty levels
 - **Detailed Challenge View**: Step-by-step guide, hints, code snippets
 - **Rewards**: 150-500 XP per challenge + bonus XP
+- **Bonus Challenges**: Extra XP untuk completion cepat
 - **Progress Tracking**: Saved di localStorage per user
 - **Visual Feedback**: Confetti animation & notifications
 - **Persistent Data**: XP tidak hilang saat refresh
+- **Login Required**: Must login to participate in challenges
+- **Locked State**: Challenges locked untuk guest users
 
 ### Challenge List:
 1. Slice Navbar Responsive (+150 XP + 50 bonus) - Easy

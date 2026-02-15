@@ -68,8 +68,8 @@
                 </div>
                 
                 <div class="hidden md:flex items-center gap-4">
-                    <!-- User Info -->
-                    <div class="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-gray-200">
+                    <!-- User Info (only show if logged in) -->
+                    <div id="userInfoDesktop" class="hidden items-center gap-3 px-4 py-2 bg-white rounded-xl border border-gray-200">
                         <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
                             <i class="fa-solid fa-user text-white text-sm"></i>
                         </div>
@@ -79,14 +79,20 @@
                         </div>
                     </div>
                     
-                    <!-- XP Counter -->
-                    <div class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl">
+                    <!-- XP Counter (only show if logged in) -->
+                    <div id="xpCounterDesktop" class="hidden items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl">
                         <span class="text-2xl">⚡</span>
                         <span class="font-bold text-primary"><span id="user-xp">0</span> XP</span>
                     </div>
                     
-                    <!-- Logout Button -->
-                    <button id="logoutBtn" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
+                    <!-- Login Button (show if not logged in) -->
+                    <button id="loginBtnDesktop" class="px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold hover:shadow-glow transition-all duration-300 flex items-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>Masuk</span>
+                    </button>
+                    
+                    <!-- Logout Button (only show if logged in) -->
+                    <button id="logoutBtn" class="hidden px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-all duration-300 flex items-center gap-2">
                         <i class="fa-solid fa-right-from-bracket"></i>
                         <span>Logout</span>
                     </button>
@@ -103,8 +109,8 @@
         <!-- Mobile Menu -->
         <div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-100">
             <div class="container mx-auto px-4 py-4 flex flex-col gap-4">
-                <!-- User Info Mobile -->
-                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <!-- User Info Mobile (only show if logged in) -->
+                <div id="userInfoMobile" class="hidden items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     <div class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
                         <i class="fa-solid fa-user text-white"></i>
                     </div>
@@ -123,7 +129,14 @@
                 <a href="#challenges" class="nav-link-mobile">Challenges</a>
                 <a href="#projects" class="nav-link-mobile">Projects</a>
                 
-                <button id="logoutBtnMobile" class="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2">
+                <!-- Login Button Mobile (show if not logged in) -->
+                <button id="loginBtnMobile" class="px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    Masuk
+                </button>
+                
+                <!-- Logout Button Mobile (only show if logged in) -->
+                <button id="logoutBtnMobile" class="hidden px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     Logout
                 </button>
@@ -327,8 +340,47 @@
                 </p>
             </div>
             
+            <!-- Progress Overview (only show if logged in) -->
+            <div id="challengeProgress" class="hidden max-w-4xl mx-auto mb-8 p-6 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl border border-primary/10" data-aos="fade-up">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">Your Progress</h3>
+                        <p class="text-sm text-gray-600">Keep going! Complete all challenges to become a master</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold text-primary" id="completedCount">0/4</div>
+                        <div class="text-xs text-gray-500">Completed</div>
+                    </div>
+                </div>
+                <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex items-center justify-between mt-3 text-sm">
+                    <span class="text-gray-600">
+                        <i class="fa-solid fa-bolt text-primary mr-1"></i>
+                        Total XP: <span class="font-bold text-primary" id="totalEarnedXP">0</span>
+                    </span>
+                    <span class="text-gray-600">
+                        <i class="fa-solid fa-trophy text-amber-500 mr-1"></i>
+                        Rank: <span class="font-bold text-amber-600" id="userRank">Beginner</span>
+                    </span>
+                </div>
+            </div>
+            
             <div id="challenges-grid" class="grid sm:grid-cols-2 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
                 <!-- Challenge cards will be rendered here by JavaScript -->
+            </div>
+            
+            <!-- Login CTA (only show if not logged in) -->
+            <div id="challengeLoginCTA" class="max-w-2xl mx-auto mt-12 p-8 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl text-center" data-aos="fade-up">
+                <div class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-lock text-white text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-2">Unlock All Challenges</h3>
+                <p class="text-gray-600 mb-6">Login untuk mulai menyelesaikan challenges dan dapatkan XP!</p>
+                <button onclick="document.getElementById('loginBtnDesktop').click()" class="px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold hover:shadow-glow transition-all duration-300">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i>Login Sekarang
+                </button>
             </div>
         </div>
     </section>
@@ -754,17 +806,6 @@
                         <i class="fa-solid fa-user-plus mr-2"></i>Register
                     </button>
                 </form>
-
-                <!-- Demo Account Info -->
-                <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                    <p class="text-sm text-blue-800 font-semibold mb-2">
-                        <i class="fa-solid fa-info-circle mr-2"></i>Demo Account
-                    </p>
-                    <p class="text-xs text-blue-600">
-                        Email: <span class="font-mono">demo@spinotek.com</span><br>
-                        Password: <span class="font-mono">demo123</span>
-                    </p>
-                </div>
             </div>
         </div>
     </div>

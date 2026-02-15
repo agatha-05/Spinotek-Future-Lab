@@ -39,7 +39,90 @@ function logout() {
     if (confirm('Yakin ingin logout?')) {
         localStorage.removeItem('spinotek_current_user');
         currentUser = null;
-        showAuthModal();
+        userXP = 0;
+        completedChallenges = [];
+        
+        // Hide user info, show login button
+        hideUserInfo();
+        showLoginButton();
+        
+        // Re-render challenges to reset state
+        renderChallenges();
+        
+        showNotification('Logout berhasil!', 'success');
+    }
+}
+
+// Show/Hide User Info
+function showUserInfo() {
+    // Desktop
+    const userInfoDesktop = document.getElementById('userInfoDesktop');
+    const xpCounterDesktop = document.getElementById('xpCounterDesktop');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginBtnDesktop = document.getElementById('loginBtnDesktop');
+    
+    if (userInfoDesktop) userInfoDesktop.classList.remove('hidden');
+    if (userInfoDesktop) userInfoDesktop.classList.add('flex');
+    if (xpCounterDesktop) xpCounterDesktop.classList.remove('hidden');
+    if (xpCounterDesktop) xpCounterDesktop.classList.add('flex');
+    if (logoutBtn) logoutBtn.classList.remove('hidden');
+    if (loginBtnDesktop) loginBtnDesktop.classList.add('hidden');
+    
+    // Mobile
+    const userInfoMobile = document.getElementById('userInfoMobile');
+    const logoutBtnMobile = document.getElementById('logoutBtnMobile');
+    const loginBtnMobile = document.getElementById('loginBtnMobile');
+    
+    if (userInfoMobile) userInfoMobile.classList.remove('hidden');
+    if (userInfoMobile) userInfoMobile.classList.add('flex');
+    if (logoutBtnMobile) logoutBtnMobile.classList.remove('hidden');
+    if (loginBtnMobile) loginBtnMobile.classList.add('hidden');
+}
+
+function hideUserInfo() {
+    // Desktop
+    const userInfoDesktop = document.getElementById('userInfoDesktop');
+    const xpCounterDesktop = document.getElementById('xpCounterDesktop');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    if (userInfoDesktop) userInfoDesktop.classList.add('hidden');
+    if (userInfoDesktop) userInfoDesktop.classList.remove('flex');
+    if (xpCounterDesktop) xpCounterDesktop.classList.add('hidden');
+    if (xpCounterDesktop) xpCounterDesktop.classList.remove('flex');
+    if (logoutBtn) logoutBtn.classList.add('hidden');
+    
+    // Mobile
+    const userInfoMobile = document.getElementById('userInfoMobile');
+    const logoutBtnMobile = document.getElementById('logoutBtnMobile');
+    
+    if (userInfoMobile) userInfoMobile.classList.add('hidden');
+    if (userInfoMobile) userInfoMobile.classList.remove('flex');
+    if (logoutBtnMobile) logoutBtnMobile.classList.add('hidden');
+}
+
+function showLoginButton() {
+    const loginBtnDesktop = document.getElementById('loginBtnDesktop');
+    const loginBtnMobile = document.getElementById('loginBtnMobile');
+    
+    if (loginBtnDesktop) loginBtnDesktop.classList.remove('hidden');
+    if (loginBtnMobile) loginBtnMobile.classList.remove('hidden');
+}
+
+// Setup Login Buttons
+function setupLoginButtons() {
+    const loginBtnDesktop = document.getElementById('loginBtnDesktop');
+    const loginBtnMobile = document.getElementById('loginBtnMobile');
+    
+    if (loginBtnDesktop) {
+        loginBtnDesktop.addEventListener('click', showAuthModal);
+    }
+    if (loginBtnMobile) {
+        loginBtnMobile.addEventListener('click', () => {
+            showAuthModal();
+            // Close mobile menu
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu) mobileMenu.classList.add('hidden');
+        });
     }
 }
 
@@ -252,12 +335,13 @@ function setupAuthSystem() {
             localStorage.setItem('spinotek_current_user', JSON.stringify(user));
             
             // Show success and hide modal
-            showNotification('Login berhasil!', 'success');
+            showNotification('Login berhasil! Selamat datang ' + user.name, 'success');
             hideAuthModal();
             
-            // Initialize user data
+            // Initialize user data and update UI
             initUserData();
             updateXPDisplay();
+            showUserInfo();
             renderChallenges();
             
             // Reset form
@@ -638,13 +722,21 @@ function renderChallenges() {
     
     challengesData.forEach((challenge, index) => {
         const isCompleted = completedChallenges.includes(challenge.id);
+        const isLocked = !currentUser;
         
         const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl p-6 shadow-soft hover:shadow-xl transition-all duration-300 border border-transparent hover:border-primary/20';
+        card.className = 'bg-white rounded-2xl p-6 shadow-soft hover:shadow-xl transition-all duration-300 border border-transparent hover:border-primary/20 relative overflow-hidden';
         card.setAttribute('data-aos', 'fade-up');
         card.setAttribute('data-aos-delay', index * 100);
         
+        // Add locked overlay if not logged in
+        if (isLocked) {
+            card.classList.add('opacity-75');
+        }
+        
         card.innerHTML = `
+            ${isLocked ? '<div class="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center rounded-2xl"><i class="fa-solid fa-lock text-gray-400 text-3xl"></i></div>' : ''}
+            
             <div class="flex items-start justify-between mb-4">
                 <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white text-xl">
                     <i class="${challenge.icon}"></i>
@@ -660,6 +752,7 @@ function renderChallenges() {
             <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
                 <i class="fa-solid fa-clock"></i>
                 <span>${challenge.estimatedTime}</span>
+                ${challenge.bonusXP ? `<span class="ml-auto text-amber-600 font-semibold"><i class="fa-solid fa-star"></i> +${challenge.bonusXP} Bonus</span>` : ''}
             </div>
             
             <div class="flex items-center justify-between gap-2">
@@ -672,6 +765,7 @@ function renderChallenges() {
                     <button 
                         onclick="showChallengeDetail(${challenge.id})"
                         class="px-3 py-2 bg-white border-2 border-primary text-primary rounded-lg font-semibold text-xs hover:bg-primary hover:text-white transition-all duration-300"
+                        ${isLocked ? 'disabled' : ''}
                     >
                         <i class="fa-solid fa-info-circle"></i>
                     </button>
@@ -680,13 +774,15 @@ function renderChallenges() {
                         class="challenge-btn px-4 py-2 rounded-lg font-semibold text-xs transition-all duration-300 ${
                             isCompleted 
                                 ? 'bg-green-100 text-green-600 cursor-not-allowed' 
+                                : isLocked
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                 : 'bg-gradient-to-r from-primary to-secondary text-white hover:shadow-glow'
                         }"
                         data-challenge-id="${challenge.id}"
                         data-xp="${challenge.xp_reward}"
-                        ${isCompleted ? 'disabled' : ''}
+                        ${isCompleted || isLocked ? 'disabled' : ''}
                     >
-                        ${isCompleted ? '✓ Done' : 'Start'}
+                        ${isCompleted ? '✓ Done' : isLocked ? '<i class="fa-solid fa-lock"></i>' : 'Start'}
                     </button>
                 </div>
             </div>
@@ -697,6 +793,54 @@ function renderChallenges() {
     
     // Add event listeners to challenge buttons
     attachChallengeListeners();
+    
+    // Update progress display
+    updateChallengeProgress();
+}
+
+// Update Challenge Progress
+function updateChallengeProgress() {
+    const progressSection = document.getElementById('challengeProgress');
+    const loginCTA = document.getElementById('challengeLoginCTA');
+    
+    if (currentUser) {
+        // Show progress, hide CTA
+        if (progressSection) {
+            progressSection.classList.remove('hidden');
+            progressSection.classList.add('block');
+        }
+        if (loginCTA) loginCTA.classList.add('hidden');
+        
+        // Update progress values
+        const totalChallenges = challengesData.length;
+        const completed = completedChallenges.length;
+        const percentage = (completed / totalChallenges) * 100;
+        
+        const completedCount = document.getElementById('completedCount');
+        const progressBar = document.getElementById('progressBar');
+        const totalEarnedXP = document.getElementById('totalEarnedXP');
+        const userRank = document.getElementById('userRank');
+        
+        if (completedCount) completedCount.textContent = `${completed}/${totalChallenges}`;
+        if (progressBar) progressBar.style.width = `${percentage}%`;
+        if (totalEarnedXP) totalEarnedXP.textContent = userXP;
+        
+        // Calculate rank
+        if (userRank) {
+            let rank = 'Beginner';
+            if (userXP >= 1000) rank = 'Master';
+            else if (userXP >= 500) rank = 'Expert';
+            else if (userXP >= 200) rank = 'Intermediate';
+            userRank.textContent = rank;
+        }
+    } else {
+        // Hide progress, show CTA
+        if (progressSection) progressSection.classList.add('hidden');
+        if (loginCTA) {
+            loginCTA.classList.remove('hidden');
+            loginCTA.classList.add('block');
+        }
+    }
 }
 
 // ========================================
@@ -719,17 +863,31 @@ function attachChallengeListeners() {
 }
 
 function completeChallenge(challengeId, xpReward, buttonElement) {
+    // Check if user is logged in
+    if (!currentUser) {
+        showNotification('Silakan login terlebih dahulu untuk menyelesaikan challenge', 'error');
+        showAuthModal();
+        return;
+    }
+    
+    // Check if already completed
+    if (completedChallenges.includes(challengeId)) {
+        showNotification('Challenge sudah diselesaikan!', 'error');
+        return;
+    }
+    
     // Add XP
     userXP += xpReward;
     
     // Mark as completed
     completedChallenges.push(challengeId);
     
-    // Save progress
+    // Save progress to localStorage
     saveProgress();
     
-    // Update UI
+    // Update UI - INI YANG MEMBUAT PROGRESS BAR BERUBAH!
     updateXPDisplay();
+    updateChallengeProgress(); // Update progress bar, rank, dll
     
     // Animate button if provided
     if (buttonElement) {
@@ -740,12 +898,16 @@ function completeChallenge(challengeId, xpReward, buttonElement) {
     }
     
     // Show notification
-    showNotification(`🎉 Challenge Completed! +${xpReward} XP earned`, 'success');
+    const challenge = challengesData.find(c => c.id === challengeId);
+    showNotification(`🎉 Challenge "${challenge.title}" Completed! +${xpReward} XP earned`, 'success');
     
     // Confetti effect
     if (buttonElement) {
         createConfetti(buttonElement);
     }
+    
+    // Check for level up
+    checkLevelUp();
 }
 
 function createConfetti(element) {
@@ -765,6 +927,73 @@ function createConfetti(element) {
         
         setTimeout(() => confetti.remove(), 1000);
     }
+}
+
+// Confetti at center of screen
+function createConfettiAtCenter() {
+    const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = centerX + 'px';
+        confetti.style.top = centerY + 'px';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.setProperty('--tx', (Math.random() - 0.5) * 400 + 'px');
+        confetti.style.setProperty('--ty', (Math.random() - 0.5) * 400 + 'px');
+        
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => confetti.remove(), 1500);
+    }
+}
+
+// Check for level up
+function checkLevelUp() {
+    const oldLevel = Math.floor((userXP - challengesData[challengesData.length - 1].xp_reward) / 500) + 1;
+    const newLevel = Math.floor(userXP / 500) + 1;
+    
+    if (newLevel > oldLevel) {
+        // Level up!
+        setTimeout(() => {
+            showLevelUpNotification(newLevel);
+            createConfettiAtCenter();
+        }, 1000);
+    }
+}
+
+// Show level up notification
+function showLevelUpNotification(level) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn';
+    
+    notification.innerHTML = `
+        <div class="glass-panel max-w-md w-full rounded-2xl p-8 text-center animate-scaleIn">
+            <div class="w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+                <i class="fa-solid fa-trophy text-white text-4xl"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Level Up!</h2>
+            <p class="text-xl text-gray-600 mb-6">
+                Selamat! Kamu naik ke <span class="font-bold text-primary">Level ${level}</span>
+            </p>
+            <button onclick="this.closest('.fixed').remove(); document.body.style.overflow = ''" class="px-8 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold hover:shadow-glow transition-all duration-300">
+                Awesome! 🎉
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    document.body.style.overflow = 'hidden';
+    
+    // Auto close after 5 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+            document.body.style.overflow = '';
+        }
+    }, 5000);
 }
 
 // ========================================
@@ -984,18 +1213,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize demo account
     initDemoAccount();
     
-    // Check authentication
-    if (!checkAuth()) {
-        // Show auth modal if not logged in
-        showAuthModal();
-    } else {
-        // Initialize user data
+    // Check authentication and update UI
+    if (checkAuth()) {
+        // User is logged in
         initUserData();
         updateXPDisplay();
+        showUserInfo();
+    } else {
+        // User is not logged in
+        showLoginButton();
     }
     
     // Setup auth system
     setupAuthSystem();
+    
+    // Setup login buttons
+    setupLoginButtons();
     
     // Render Tech Radar & Challenges
     renderTechRadar();
@@ -1387,6 +1620,13 @@ function showChallengeDetail(challengeId) {
     
     const isCompleted = completedChallenges.includes(challengeId);
     
+    // Check if user is logged in
+    if (!currentUser) {
+        showNotification('Silakan login terlebih dahulu untuk melihat detail challenge', 'error');
+        showAuthModal();
+        return;
+    }
+    
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn overflow-y-auto';
     modal.onclick = (e) => {
@@ -1394,49 +1634,44 @@ function showChallengeDetail(challengeId) {
     };
     
     modal.innerHTML = `
-        <div class="glass-panel max-w-4xl w-full rounded-3xl p-6 sm:p-8 animate-scaleIn my-8">
+        <div class="glass-panel max-w-3xl w-full rounded-2xl p-4 sm:p-6 animate-scaleIn my-4 max-h-[85vh] overflow-y-auto">
             <!-- Header -->
-            <div class="flex items-start justify-between mb-6">
-                <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white text-2xl">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white text-xl">
                         <i class="${challenge.icon}"></i>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">${challenge.title}</h2>
+                        <h2 class="text-xl font-bold text-gray-900 mb-1">${challenge.title}</h2>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="px-3 py-1 ${challenge.difficultyColor} text-xs font-semibold rounded-full">
+                            <span class="px-2 py-0.5 ${challenge.difficultyColor} text-xs font-semibold rounded-full">
                                 ${challenge.difficulty}
                             </span>
-                            <span class="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-full">
+                            <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded-full">
                                 <i class="fa-solid fa-clock mr-1"></i>${challenge.estimatedTime}
                             </span>
-                            <span class="px-3 py-1 bg-purple-50 text-purple-600 text-xs font-semibold rounded-full">
+                            <span class="px-2 py-0.5 bg-purple-50 text-purple-600 text-xs font-semibold rounded-full">
                                 <i class="fa-solid fa-bolt mr-1"></i>+${challenge.xp_reward} XP
                             </span>
-                            ${challenge.bonusXP ? `
-                                <span class="px-3 py-1 bg-amber-50 text-amber-600 text-xs font-semibold rounded-full">
-                                    <i class="fa-solid fa-star mr-1"></i>Bonus +${challenge.bonusXP} XP
-                                </span>
-                            ` : ''}
                         </div>
                     </div>
                 </div>
-                <button onclick="closeModal(this.closest('.fixed'))" class="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center justify-center transition-colors flex-shrink-0">
+                <button onclick="closeModal(this.closest('.fixed'))" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center transition-colors flex-shrink-0">
                     <i class="fa-solid fa-xmark text-gray-600"></i>
                 </button>
             </div>
             
             <!-- Description -->
-            <p class="text-gray-600 leading-relaxed mb-6">${challenge.description}</p>
+            <p class="text-gray-600 text-sm leading-relaxed mb-4">${challenge.description}</p>
             
             <!-- Prerequisites -->
-            <div class="mb-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-3">
-                    <i class="fa-solid fa-list-check text-primary mr-2"></i>Prerequisites
+            <div class="mb-4">
+                <h3 class="text-sm font-bold text-gray-900 mb-2">
+                    <i class="fa-solid fa-list-check text-primary mr-1"></i>Prerequisites
                 </h3>
-                <div class="flex flex-wrap gap-2">
+                <div class="flex flex-wrap gap-1.5">
                     ${challenge.prerequisites.map(prereq => `
-                        <span class="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg">
+                        <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg">
                             ${prereq}
                         </span>
                     `).join('')}
@@ -1444,83 +1679,83 @@ function showChallengeDetail(challengeId) {
             </div>
             
             <!-- Steps -->
-            <div class="mb-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-3">
-                    <i class="fa-solid fa-route text-primary mr-2"></i>Step-by-Step Guide
+            <div class="mb-4">
+                <h3 class="text-sm font-bold text-gray-900 mb-2">
+                    <i class="fa-solid fa-route text-primary mr-1"></i>Step-by-Step Guide
                 </h3>
-                <div class="space-y-3">
+                <div class="space-y-2">
                     ${challenge.steps.map((step, index) => `
-                        <div class="flex gap-3 items-start">
-                            <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        <div class="flex gap-2 items-start text-sm">
+                            <div class="w-6 h-6 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                                 ${index + 1}
                             </div>
-                            <p class="text-gray-700 pt-1">${step}</p>
+                            <p class="text-gray-700 pt-0.5">${step}</p>
                         </div>
                     `).join('')}
                 </div>
             </div>
             
             <!-- Hints -->
-            <div class="mb-6">
-                <button onclick="toggleHints(${challengeId})" class="flex items-center gap-2 text-primary font-semibold hover:text-secondary transition-colors mb-3">
+            <div class="mb-4">
+                <button onclick="toggleHints(${challengeId})" class="flex items-center gap-2 text-primary text-sm font-semibold hover:text-secondary transition-colors mb-2">
                     <i class="fa-solid fa-lightbulb"></i>
                     <span>Show Hints (${challenge.hints.length})</span>
-                    <i class="fa-solid fa-chevron-down" id="hints-icon-${challengeId}"></i>
+                    <i class="fa-solid fa-chevron-down text-xs" id="hints-icon-${challengeId}"></i>
                 </button>
-                <div id="hints-${challengeId}" class="hidden space-y-2">
+                <div id="hints-${challengeId}" class="hidden space-y-1.5">
                     ${challenge.hints.map((hint, index) => `
-                        <div class="flex gap-3 items-start bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                            <i class="fa-solid fa-lightbulb text-yellow-600 mt-1"></i>
-                            <p class="text-gray-700 text-sm">${hint}</p>
+                        <div class="flex gap-2 items-start bg-yellow-50 p-2 rounded-lg border border-yellow-200 text-sm">
+                            <i class="fa-solid fa-lightbulb text-yellow-600 mt-0.5 text-xs"></i>
+                            <p class="text-gray-700">${hint}</p>
                         </div>
                     `).join('')}
                 </div>
             </div>
             
             <!-- Code Snippet -->
-            <div class="mb-6">
-                <button onclick="toggleCode(${challengeId})" class="flex items-center gap-2 text-primary font-semibold hover:text-secondary transition-colors mb-3">
+            <div class="mb-4">
+                <button onclick="toggleCode(${challengeId})" class="flex items-center gap-2 text-primary text-sm font-semibold hover:text-secondary transition-colors mb-2">
                     <i class="fa-solid fa-code"></i>
                     <span>Show Code Snippet</span>
-                    <i class="fa-solid fa-chevron-down" id="code-icon-${challengeId}"></i>
+                    <i class="fa-solid fa-chevron-down text-xs" id="code-icon-${challengeId}"></i>
                 </button>
                 <div id="code-${challengeId}" class="hidden">
-                    <div class="bg-gray-900 rounded-xl p-4 overflow-x-auto">
-                        <pre class="text-gray-100 text-sm"><code>${escapeHtml(challenge.codeSnippet)}</code></pre>
+                    <div class="bg-gray-900 rounded-lg p-3 overflow-x-auto text-xs">
+                        <pre class="text-gray-100"><code>${escapeHtml(challenge.codeSnippet)}</code></pre>
                     </div>
-                    <button onclick="copyCode(${challengeId})" class="mt-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold transition-colors">
-                        <i class="fa-solid fa-copy mr-2"></i>Copy Code
+                    <button onclick="copyCode(${challengeId})" class="mt-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-colors">
+                        <i class="fa-solid fa-copy mr-1"></i>Copy Code
                     </button>
                 </div>
             </div>
             
             ${challenge.bonusXP ? `
-                <div class="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200">
-                    <div class="flex items-center gap-2 mb-2">
-                        <i class="fa-solid fa-star text-amber-600 text-xl"></i>
-                        <h3 class="font-bold text-amber-900">Bonus Challenge</h3>
+                <div class="mb-4 p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-star text-amber-600"></i>
+                        <h3 class="font-bold text-amber-900 text-sm">Bonus Challenge</h3>
                     </div>
-                    <p class="text-amber-800 text-sm">
+                    <p class="text-amber-800 text-xs">
                         <strong>+${challenge.bonusXP} XP</strong> jika ${challenge.bonusCondition}
                     </p>
                 </div>
             ` : ''}
             
             <!-- Actions -->
-            <div class="flex gap-3 flex-col sm:flex-row">
+            <div class="flex gap-2 flex-col sm:flex-row">
                 ${!isCompleted ? `
-                    <button onclick="startChallenge(${challengeId})" class="flex-1 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold hover:shadow-glow transition-all duration-300">
-                        <i class="fa-solid fa-play mr-2"></i>Start Challenge
+                    <button onclick="startChallenge(${challengeId})" class="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold text-sm hover:shadow-glow transition-all duration-300">
+                        <i class="fa-solid fa-play mr-1"></i>Start Challenge
                     </button>
-                    <button onclick="submitChallenge(${challengeId})" class="flex-1 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-all duration-300">
-                        <i class="fa-solid fa-check mr-2"></i>Submit & Complete
+                    <button onclick="submitChallenge(${challengeId})" class="flex-1 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold text-sm transition-all duration-300">
+                        <i class="fa-solid fa-check mr-1"></i>Submit & Complete
                     </button>
                 ` : `
-                    <div class="flex-1 px-6 py-3 bg-green-100 text-green-600 rounded-xl font-semibold text-center">
-                        <i class="fa-solid fa-check-circle mr-2"></i>Challenge Completed!
+                    <div class="flex-1 px-4 py-2.5 bg-green-100 text-green-600 rounded-xl font-semibold text-center text-sm">
+                        <i class="fa-solid fa-check-circle mr-1"></i>Challenge Completed!
                     </div>
                 `}
-                <button onclick="closeModal(this.closest('.fixed'))" class="px-6 py-3 bg-white border-2 border-gray-200 rounded-xl font-semibold hover:border-primary transition-all duration-300">
+                <button onclick="closeModal(this.closest('.fixed'))" class="px-4 py-2.5 bg-white border-2 border-gray-200 rounded-xl font-semibold text-sm hover:border-primary transition-all duration-300">
                     Close
                 </button>
             </div>
@@ -1605,6 +1840,19 @@ function submitChallenge(challengeId) {
     const challenge = challengesData.find(c => c.id === challengeId);
     if (!challenge) return;
     
+    // Check if user is logged in
+    if (!currentUser) {
+        showNotification('Silakan login terlebih dahulu', 'error');
+        showAuthModal();
+        return;
+    }
+    
+    // Check if already completed
+    if (completedChallenges.includes(challengeId)) {
+        showNotification('Challenge sudah diselesaikan!', 'error');
+        return;
+    }
+    
     // Show submission modal
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn';
@@ -1613,7 +1861,7 @@ function submitChallenge(challengeId) {
     };
     
     modal.innerHTML = `
-        <div class="glass-panel max-w-2xl w-full rounded-3xl p-8 animate-scaleIn">
+        <div class="glass-panel max-w-2xl w-full rounded-2xl p-6 animate-scaleIn">
             <h2 class="text-2xl font-bold text-gray-900 mb-4">
                 <i class="fa-solid fa-upload text-primary mr-2"></i>Submit Challenge
             </h2>
@@ -1657,6 +1905,20 @@ function submitChallenge(challengeId) {
                     ></textarea>
                 </div>
                 
+                <!-- XP Preview -->
+                <div class="p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-700 font-semibold">XP yang akan didapat:</span>
+                        <span class="text-2xl font-bold text-primary">+${challenge.xp_reward} XP</span>
+                    </div>
+                    ${challenge.bonusXP ? `
+                        <div class="mt-2 text-sm text-amber-700">
+                            <i class="fa-solid fa-star text-amber-500"></i>
+                            Bonus +${challenge.bonusXP} XP tersedia jika ${challenge.bonusCondition}
+                        </div>
+                    ` : ''}
+                </div>
+                
                 <div class="flex gap-3">
                     <button 
                         type="submit"
@@ -1683,13 +1945,19 @@ function submitChallenge(challengeId) {
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Complete the challenge
+        // Complete the challenge - INI YANG MEMBUAT PROGRESS BERTAMBAH!
         completeChallenge(challengeId, challenge.xp_reward, null);
         
         // Close both modals
         document.querySelectorAll('.fixed.inset-0').forEach(m => closeModal(m));
         
-        // Show success
-        showNotification(`🎉 Challenge completed! +${challenge.xp_reward} XP earned!`, 'success');
+        // Re-render challenges to update UI
+        renderChallenges();
+        
+        // Show success with confetti
+        showNotification(`🎉 Challenge "${challenge.title}" completed! +${challenge.xp_reward} XP earned!`, 'success');
+        
+        // Trigger confetti at center of screen
+        createConfettiAtCenter();
     });
 }
