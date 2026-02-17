@@ -198,6 +198,17 @@ Update Google Fonts link di `<head>` dan config Tailwind.
 - Safari (latest)
 - Edge (latest)
 
+## 📚 Documentation
+
+Dokumentasi lengkap tersedia di:
+
+- **README.md** - Overview & quick start guide
+- **PRESENTATION.md** - Deskripsi lengkap untuk presentasi (12+ halaman)
+- **SLIDE_DECK.md** - Outline 21 slide presentasi dengan script
+- **QUICK_REFERENCE.md** - Quick reference card untuk presentasi
+- **PROGRESS_SYSTEM.md** - Penjelasan detail sistem progress & gamification
+- Inline code comments untuk clarity
+
 ## 📝 License
 
 Free to use for Hackathon & learning purposes.
